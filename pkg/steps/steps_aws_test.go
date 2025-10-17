@@ -4,9 +4,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/clobrano/ccoctl-sso/pkg/config"
-	"github.com/clobrano/ccoctl-sso/pkg/logger"
-	"github.com/clobrano/ccoctl-sso/pkg/util"
+	"gitlab.cee.redhat.com/clobrano/ccoctl-sso/pkg/config"
+	"gitlab.cee.redhat.com/clobrano/ccoctl-sso/pkg/logger"
+	"gitlab.cee.redhat.com/clobrano/ccoctl-sso/pkg/util"
 )
 
 func TestStep6CreateAWSResources(t *testing.T) {

@@ -1,8 +1,8 @@
 package steps
 
 import (
-	"github.com/clobrano/ccoctl-sso/pkg/config"
-	"github.com/clobrano/ccoctl-sso/pkg/util"
+	"gitlab.cee.redhat.com/clobrano/ccoctl-sso/pkg/config"
+	"gitlab.cee.redhat.com/clobrano/ccoctl-sso/pkg/util"
 )
 
 type Detector struct {

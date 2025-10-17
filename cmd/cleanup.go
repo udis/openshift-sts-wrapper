@@ -6,8 +6,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/clobrano/ccoctl-sso/pkg/logger"
-	"github.com/clobrano/ccoctl-sso/pkg/util"
+	"gitlab.cee.redhat.com/clobrano/ccoctl-sso/pkg/logger"
+	"gitlab.cee.redhat.com/clobrano/ccoctl-sso/pkg/util"
 	"github.com/spf13/cobra"
 )
 

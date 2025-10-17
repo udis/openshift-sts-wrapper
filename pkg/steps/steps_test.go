@@ -5,9 +5,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/clobrano/ccoctl-sso/pkg/config"
-	"github.com/clobrano/ccoctl-sso/pkg/logger"
-	"github.com/clobrano/ccoctl-sso/pkg/util"
+	"gitlab.cee.redhat.com/clobrano/ccoctl-sso/pkg/config"
+	"gitlab.cee.redhat.com/clobrano/ccoctl-sso/pkg/logger"
+	"gitlab.cee.redhat.com/clobrano/ccoctl-sso/pkg/util"
 )
 
 func TestStep1ExtractCredReqs(t *testing.T) {

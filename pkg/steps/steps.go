@@ -5,9 +5,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/clobrano/ccoctl-sso/pkg/config"
-	"github.com/clobrano/ccoctl-sso/pkg/logger"
-	"github.com/clobrano/ccoctl-sso/pkg/util"
+	"gitlab.cee.redhat.com/clobrano/ccoctl-sso/pkg/config"
+	"gitlab.cee.redhat.com/clobrano/ccoctl-sso/pkg/logger"
+	"gitlab.cee.redhat.com/clobrano/ccoctl-sso/pkg/util"
 )
 
 // Step represents a single installation step

@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/clobrano/ccoctl-sso/cmd"
+	"gitlab.cee.redhat.com/clobrano/ccoctl-sso/cmd"
 )
 
 func main() {

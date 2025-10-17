@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/clobrano/ccoctl-sso/pkg/config"
+	"gitlab.cee.redhat.com/clobrano/ccoctl-sso/pkg/config"
 )
 
 func TestShouldSkipStep(t *testing.T) {
