@@ -1,0 +1,35 @@
+# Binaries
+openshift-sts-installer
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool
+*.out
+
+# Installation artifacts
+artifacts/
+_output/
+manifests/
+tls/
+pull-secret.json
+install-config.yaml
+.openshift_install.log
+
+# Config files (user-specific)
+openshift-sts-installer.yaml
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
