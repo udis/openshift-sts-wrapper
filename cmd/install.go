@@ -116,18 +116,22 @@ func runInstall(cmd *cobra.Command, args []string) {
 		{10, func(c *config.Config, l *logger.Logger, e util.CommandExecutor) (steps.Step, error) {
 			return steps.NewStep10(c, l, e)
 		}},
+		{11, func(c *config.Config, l *logger.Logger, e util.CommandExecutor) (steps.Step, error) {
+			return steps.NewStep11(c, l, e)
+		}},
 	}
 
 	for _, stepDef := range allSteps {
-		if detector.ShouldSkipStep(stepDef.num) {
-			log.Info(fmt.Sprintf("⏭  Skipping step %d (already completed)", stepDef.num))
+		// Create step to get its name
+		step, err := stepDef.factory(cfg, log, executor)
+		if err != nil {
+			log.Error(fmt.Sprintf("Failed to create step: %v", err))
+			summary.AddError(fmt.Sprintf("Step %d", stepDef.num), err)
 			continue
 		}
 
-		step, err := stepDef.factory(cfg, log, executor)
-		if err != nil {
-			log.Error(fmt.Sprintf("Failed to create step %d: %v", stepDef.num, err))
-			summary.AddError(fmt.Sprintf("Step %d", stepDef.num), err)
+		if detector.ShouldSkipStep(stepDef.num) {
+			log.Info(fmt.Sprintf("⏭  Skipping %s (already completed)", step.Name()))
 			continue
 		}
 

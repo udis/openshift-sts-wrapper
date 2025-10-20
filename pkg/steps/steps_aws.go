@@ -11,24 +11,24 @@ import (
 	"gitlab.cee.redhat.com/clobrano/ccoctl-sso/pkg/util"
 )
 
-// Step6CreateAWSResources runs ccoctl to create AWS resources
-type Step6CreateAWSResources struct {
+// Step7CreateAWSResources runs ccoctl to create AWS resources
+type Step7CreateAWSResources struct {
 	*BaseStep
 }
 
-func NewStep6(cfg *config.Config, log *logger.Logger, executor util.CommandExecutor) (*Step6CreateAWSResources, error) {
+func NewStep7(cfg *config.Config, log *logger.Logger, executor util.CommandExecutor) (*Step7CreateAWSResources, error) {
 	base, err := newBaseStep(cfg, log, executor)
 	if err != nil {
 		return nil, err
 	}
-	return &Step6CreateAWSResources{BaseStep: base}, nil
+	return &Step7CreateAWSResources{BaseStep: base}, nil
 }
 
-func (s *Step6CreateAWSResources) Name() string {
+func (s *Step7CreateAWSResources) Name() string {
 	return "Create AWS resources"
 }
 
-func (s *Step6CreateAWSResources) Execute() error {
+func (s *Step7CreateAWSResources) Execute() error {
 	ccoctlBin := util.GetBinaryPath(s.versionArch, "ccoctl")
 	credreqsPath := util.GetCredReqsPath(s.versionArch)
 
@@ -47,24 +47,24 @@ func (s *Step6CreateAWSResources) Execute() error {
 	return util.RunCommand(s.executor, ccoctlBin, args...)
 }
 
-// Step7CopyManifests copies manifests from _output to manifests/
-type Step7CopyManifests struct {
+// Step8CopyManifests copies manifests from _output to manifests/
+type Step8CopyManifests struct {
 	*BaseStep
 }
 
-func NewStep7(cfg *config.Config, log *logger.Logger, executor util.CommandExecutor) (*Step7CopyManifests, error) {
+func NewStep8(cfg *config.Config, log *logger.Logger, executor util.CommandExecutor) (*Step8CopyManifests, error) {
 	base, err := newBaseStep(cfg, log, executor)
 	if err != nil {
 		return nil, err
 	}
-	return &Step7CopyManifests{BaseStep: base}, nil
+	return &Step8CopyManifests{BaseStep: base}, nil
 }
 
-func (s *Step7CopyManifests) Name() string {
+func (s *Step8CopyManifests) Name() string {
 	return "Copy manifests"
 }
 
-func (s *Step7CopyManifests) Execute() error {
+func (s *Step8CopyManifests) Execute() error {
 	srcDir := filepath.Join(s.cfg.OutputDir, "manifests")
 	dstDir := "manifests"
 
@@ -75,24 +75,24 @@ func (s *Step7CopyManifests) Execute() error {
 	return copyDir(srcDir, dstDir)
 }
 
-// Step8CopyTLS copies TLS files from _output to ./
-type Step8CopyTLS struct {
+// Step9CopyTLS copies TLS files from _output to ./
+type Step9CopyTLS struct {
 	*BaseStep
 }
 
-func NewStep8(cfg *config.Config, log *logger.Logger, executor util.CommandExecutor) (*Step8CopyTLS, error) {
+func NewStep9(cfg *config.Config, log *logger.Logger, executor util.CommandExecutor) (*Step9CopyTLS, error) {
 	base, err := newBaseStep(cfg, log, executor)
 	if err != nil {
 		return nil, err
 	}
-	return &Step8CopyTLS{BaseStep: base}, nil
+	return &Step9CopyTLS{BaseStep: base}, nil
 }
 
-func (s *Step8CopyTLS) Name() string {
+func (s *Step9CopyTLS) Name() string {
 	return "Copy TLS files"
 }
 
-func (s *Step8CopyTLS) Execute() error {
+func (s *Step9CopyTLS) Execute() error {
 	srcDir := filepath.Join(s.cfg.OutputDir, "tls")
 	dstDir := "tls"
 
@@ -103,24 +103,24 @@ func (s *Step8CopyTLS) Execute() error {
 	return copyDir(srcDir, dstDir)
 }
 
-// Step9DeployCluster runs openshift-install create cluster
-type Step9DeployCluster struct {
+// Step10DeployCluster runs openshift-install create cluster
+type Step10DeployCluster struct {
 	*BaseStep
 }
 
-func NewStep9(cfg *config.Config, log *logger.Logger, executor util.CommandExecutor) (*Step9DeployCluster, error) {
+func NewStep10(cfg *config.Config, log *logger.Logger, executor util.CommandExecutor) (*Step10DeployCluster, error) {
 	base, err := newBaseStep(cfg, log, executor)
 	if err != nil {
 		return nil, err
 	}
-	return &Step9DeployCluster{BaseStep: base}, nil
+	return &Step10DeployCluster{BaseStep: base}, nil
 }
 
-func (s *Step9DeployCluster) Name() string {
+func (s *Step10DeployCluster) Name() string {
 	return "Deploy cluster"
 }
 
-func (s *Step9DeployCluster) Execute() error {
+func (s *Step10DeployCluster) Execute() error {
 	versionDir := filepath.Join("artifacts", s.versionArch)
 	installBin := util.GetBinaryPath(s.versionArch, "openshift-install")
 	args := []string{"create", "cluster", "--dir", versionDir, "--log-level=debug"}
@@ -128,24 +128,24 @@ func (s *Step9DeployCluster) Execute() error {
 	return util.RunCommand(s.executor, installBin, args...)
 }
 
-// Step10Verify performs post-install verification
-type Step10Verify struct {
+// Step11Verify performs post-install verification
+type Step11Verify struct {
 	*BaseStep
 }
 
-func NewStep10(cfg *config.Config, log *logger.Logger, executor util.CommandExecutor) (*Step10Verify, error) {
+func NewStep11(cfg *config.Config, log *logger.Logger, executor util.CommandExecutor) (*Step11Verify, error) {
 	base, err := newBaseStep(cfg, log, executor)
 	if err != nil {
 		return nil, err
 	}
-	return &Step10Verify{BaseStep: base}, nil
+	return &Step11Verify{BaseStep: base}, nil
 }
 
-func (s *Step10Verify) Name() string {
+func (s *Step11Verify) Name() string {
 	return "Verify installation"
 }
 
-func (s *Step10Verify) Execute() error {
+func (s *Step11Verify) Execute() error {
 	// Check 1: Root credentials should not exist
 	_, err := s.executor.Execute("oc", "get", "secrets", "-n", "kube-system", "aws-creds")
 	if err == nil {

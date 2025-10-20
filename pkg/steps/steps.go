@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"gitlab.cee.redhat.com/clobrano/ccoctl-sso/pkg/config"
 	"gitlab.cee.redhat.com/clobrano/ccoctl-sso/pkg/logger"
@@ -73,24 +74,24 @@ func (s *Step1ExtractCredReqs) Execute() error {
 	return util.RunCommand(s.executor, "oc", args...)
 }
 
-// Step2ExtractBinaries extracts openshift-install and ccoctl binaries
-type Step2ExtractBinaries struct {
+// Step2ExtractOpenshiftInstall extracts openshift-install binary
+type Step2ExtractOpenshiftInstall struct {
 	*BaseStep
 }
 
-func NewStep2(cfg *config.Config, log *logger.Logger, executor util.CommandExecutor) (*Step2ExtractBinaries, error) {
+func NewStep2(cfg *config.Config, log *logger.Logger, executor util.CommandExecutor) (*Step2ExtractOpenshiftInstall, error) {
 	base, err := newBaseStep(cfg, log, executor)
 	if err != nil {
 		return nil, err
 	}
-	return &Step2ExtractBinaries{BaseStep: base}, nil
+	return &Step2ExtractOpenshiftInstall{BaseStep: base}, nil
 }
 
-func (s *Step2ExtractBinaries) Name() string {
-	return "Extract binaries"
+func (s *Step2ExtractOpenshiftInstall) Name() string {
+	return "Extract openshift-install binary"
 }
 
-func (s *Step2ExtractBinaries) Execute() error {
+func (s *Step2ExtractOpenshiftInstall) Execute() error {
 	binPath := filepath.Join("artifacts", s.versionArch, "bin")
 	if err := util.EnsureDir(binPath); err != nil {
 		return fmt.Errorf("failed to create bin directory: %w", err)
@@ -112,7 +113,28 @@ func (s *Step2ExtractBinaries) Execute() error {
 	// Make it executable
 	os.Chmod(installBinPath, 0755)
 
-	// Extract ccoctl
+	return nil
+}
+
+// Step3ExtractCcoctl extracts ccoctl binary
+type Step3ExtractCcoctl struct {
+	*BaseStep
+}
+
+func NewStep3(cfg *config.Config, log *logger.Logger, executor util.CommandExecutor) (*Step3ExtractCcoctl, error) {
+	base, err := newBaseStep(cfg, log, executor)
+	if err != nil {
+		return nil, err
+	}
+	return &Step3ExtractCcoctl{BaseStep: base}, nil
+}
+
+func (s *Step3ExtractCcoctl) Name() string {
+	return "Extract ccoctl binary"
+}
+
+func (s *Step3ExtractCcoctl) Execute() error {
+	binPath := filepath.Join("artifacts", s.versionArch, "bin")
 	ccoctlPath := filepath.Join(binPath, "ccoctl")
 
 	// Get CCO image
@@ -122,11 +144,14 @@ func (s *Step2ExtractBinaries) Execute() error {
 		return fmt.Errorf("failed to get CCO image: %w", err)
 	}
 
+	// Trim whitespace from CCO image reference
+	ccoImage = strings.TrimSpace(ccoImage)
+
 	// Extract ccoctl from CCO image
 	extractArgs := []string{
 		"image", "extract",
 		ccoImage,
-		"--file=/usr/bin/ccoctl:" + ccoctlPath,
+		"--file=/usr/bin/ccoctl:",
 		"--registry-config=" + s.cfg.PullSecretPath,
 	}
 	if err := util.RunCommand(s.executor, "oc", extractArgs...); err != nil {
@@ -139,24 +164,24 @@ func (s *Step2ExtractBinaries) Execute() error {
 	return nil
 }
 
-// Step3CreateConfig runs openshift-install create install-config
-type Step3CreateConfig struct {
+// Step4CreateConfig runs openshift-install create install-config
+type Step4CreateConfig struct {
 	*BaseStep
 }
 
-func NewStep3(cfg *config.Config, log *logger.Logger, executor util.CommandExecutor) (*Step3CreateConfig, error) {
+func NewStep4(cfg *config.Config, log *logger.Logger, executor util.CommandExecutor) (*Step4CreateConfig, error) {
 	base, err := newBaseStep(cfg, log, executor)
 	if err != nil {
 		return nil, err
 	}
-	return &Step3CreateConfig{BaseStep: base}, nil
+	return &Step4CreateConfig{BaseStep: base}, nil
 }
 
-func (s *Step3CreateConfig) Name() string {
+func (s *Step4CreateConfig) Name() string {
 	return "Create install-config.yaml"
 }
 
-func (s *Step3CreateConfig) Execute() error {
+func (s *Step4CreateConfig) Execute() error {
 	// Ensure the version-specific directory exists
 	versionDir := filepath.Join("artifacts", s.versionArch)
 	if err := util.EnsureDir(versionDir); err != nil {
@@ -171,24 +196,24 @@ func (s *Step3CreateConfig) Execute() error {
 	return util.RunCommand(s.executor, installBin, args...)
 }
 
-// Step4SetCredentialsMode appends credentialsMode: Manual to install-config.yaml
-type Step4SetCredentialsMode struct {
+// Step5SetCredentialsMode appends credentialsMode: Manual to install-config.yaml
+type Step5SetCredentialsMode struct {
 	*BaseStep
 }
 
-func NewStep4(cfg *config.Config, log *logger.Logger, executor util.CommandExecutor) (*Step4SetCredentialsMode, error) {
+func NewStep5(cfg *config.Config, log *logger.Logger, executor util.CommandExecutor) (*Step5SetCredentialsMode, error) {
 	base, err := newBaseStep(cfg, log, executor)
 	if err != nil {
 		return nil, err
 	}
-	return &Step4SetCredentialsMode{BaseStep: base}, nil
+	return &Step5SetCredentialsMode{BaseStep: base}, nil
 }
 
-func (s *Step4SetCredentialsMode) Name() string {
+func (s *Step5SetCredentialsMode) Name() string {
 	return "Set credentialsMode to Manual"
 }
 
-func (s *Step4SetCredentialsMode) Execute() error {
+func (s *Step5SetCredentialsMode) Execute() error {
 	configPath := util.GetInstallConfigPath(s.versionArch)
 
 	// Read existing config
@@ -209,24 +234,24 @@ func (s *Step4SetCredentialsMode) Execute() error {
 	return nil
 }
 
-// Step5CreateManifests runs openshift-install create manifests
-type Step5CreateManifests struct {
+// Step6CreateManifests runs openshift-install create manifests
+type Step6CreateManifests struct {
 	*BaseStep
 }
 
-func NewStep5(cfg *config.Config, log *logger.Logger, executor util.CommandExecutor) (*Step5CreateManifests, error) {
+func NewStep6(cfg *config.Config, log *logger.Logger, executor util.CommandExecutor) (*Step6CreateManifests, error) {
 	base, err := newBaseStep(cfg, log, executor)
 	if err != nil {
 		return nil, err
 	}
-	return &Step5CreateManifests{BaseStep: base}, nil
+	return &Step6CreateManifests{BaseStep: base}, nil
 }
 
-func (s *Step5CreateManifests) Name() string {
+func (s *Step6CreateManifests) Name() string {
 	return "Create manifests"
 }
 
-func (s *Step5CreateManifests) Execute() error {
+func (s *Step6CreateManifests) Execute() error {
 	versionDir := filepath.Join("artifacts", s.versionArch)
 	installBin := util.GetBinaryPath(s.versionArch, "openshift-install")
 	args := []string{"create", "manifests", "--dir", versionDir}

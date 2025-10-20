@@ -30,33 +30,35 @@ func (d *Detector) ShouldSkipStep(stepNum int) bool {
 		// Step 1: Extract credentials requests
 		return util.DirExistsWithFiles(util.GetCredReqsPath(d.versionArch))
 	case 2:
-		// Step 2: Extract binaries
-		return util.FileExists(util.GetBinaryPath(d.versionArch, "openshift-install")) &&
-			util.FileExists(util.GetBinaryPath(d.versionArch, "ccoctl"))
+		// Step 2: Extract openshift-install binary
+		return util.FileExists(util.GetBinaryPath(d.versionArch, "openshift-install"))
 	case 3:
-		// Step 3: Create install-config.yaml
-		return util.FileExists(util.GetInstallConfigPath(d.versionArch))
+		// Step 3: Extract ccoctl binary
+		return util.FileExists(util.GetBinaryPath(d.versionArch, "ccoctl"))
 	case 4:
-		// Step 4: Set credentialsMode
-		return util.FileContains(util.GetInstallConfigPath(d.versionArch), "credentialsMode: Manual")
+		// Step 4: Create install-config.yaml
+		return util.FileExists(util.GetInstallConfigPath(d.versionArch))
 	case 5:
-		// Step 5: Create manifests
-		return util.DirExistsWithFiles("manifests")
+		// Step 5: Set credentialsMode
+		return util.FileContains(util.GetInstallConfigPath(d.versionArch), "credentialsMode: Manual")
 	case 6:
-		// Step 6: Create AWS resources
+		// Step 6: Create manifests
+		return util.DirExistsWithFiles("manifests")
+	case 7:
+		// Step 7: Create AWS resources
 		return util.DirExistsWithFiles("_output/manifests") &&
 			util.DirExistsWithFiles("_output/tls")
-	case 7:
-		// Step 7: Copy manifests
-		return util.DirExistsWithFiles("manifests")
 	case 8:
-		// Step 8: Copy TLS
-		return util.DirExistsWithFiles("tls")
+		// Step 8: Copy manifests
+		return util.DirExistsWithFiles("manifests")
 	case 9:
-		// Step 9: Deploy cluster
-		return util.FileExists(".openshift_install.log")
+		// Step 9: Copy TLS
+		return util.DirExistsWithFiles("tls")
 	case 10:
-		// Step 10: Verify installation
+		// Step 10: Deploy cluster
+		return util.FileExists(".openshift_install.log")
+	case 11:
+		// Step 11: Verify installation
 		// Verification should always run, don't skip it
 		return false
 	default:
