@@ -66,6 +66,7 @@ func (s *Step1ExtractCredReqs) Execute() error {
 		"--credentials-requests",
 		"--cloud=aws",
 		"--to=" + credreqsPath,
+		"--registry-config=" + s.cfg.PullSecretPath,
 		s.cfg.ReleaseImage,
 	}
 
@@ -101,6 +102,7 @@ func (s *Step2ExtractBinaries) Execute() error {
 		"adm", "release", "extract",
 		"--command=openshift-install",
 		"--to=" + binPath,
+		"--registry-config=" + s.cfg.PullSecretPath,
 		s.cfg.ReleaseImage,
 	}
 	if err := util.RunCommand(s.executor, "oc", args...); err != nil {
@@ -114,7 +116,7 @@ func (s *Step2ExtractBinaries) Execute() error {
 	ccoctlPath := filepath.Join(binPath, "ccoctl")
 
 	// Get CCO image
-	ccoImageArgs := []string{"adm", "release", "info", "--image-for=cloud-credential-operator", s.cfg.ReleaseImage}
+	ccoImageArgs := []string{"adm", "release", "info", "--image-for=cloud-credential-operator", "--registry-config=" + s.cfg.PullSecretPath, s.cfg.ReleaseImage}
 	ccoImage, err := s.executor.Execute("oc", ccoImageArgs...)
 	if err != nil {
 		return fmt.Errorf("failed to get CCO image: %w", err)
@@ -125,6 +127,7 @@ func (s *Step2ExtractBinaries) Execute() error {
 		"image", "extract",
 		ccoImage,
 		"--file=/usr/bin/ccoctl:" + ccoctlPath,
+		"--registry-config=" + s.cfg.PullSecretPath,
 	}
 	if err := util.RunCommand(s.executor, "oc", extractArgs...); err != nil {
 		return fmt.Errorf("failed to extract ccoctl: %w", err)
