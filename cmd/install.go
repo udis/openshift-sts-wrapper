@@ -136,11 +136,7 @@ func runInstall(cmd *cobra.Command, args []string) {
 		if err := step.Execute(); err != nil {
 			log.FailStep(step.Name())
 			summary.AddError(step.Name(), err)
-
-			// Prompt user to continue or abort
-			if !promptContinue(log, step.Name()) {
-				break
-			}
+			break
 		} else {
 			log.CompleteStep(step.Name())
 			summary.AddSuccess(step.Name())
@@ -216,11 +212,3 @@ func handleMissingPullSecret(log *logger.Logger, cfg *config.Config) {
 	cfg.PullSecretPath = path
 }
 
-func promptContinue(log *logger.Logger, stepName string) bool {
-	reader := bufio.NewReader(os.Stdin)
-	fmt.Printf("An error occurred in '%s'. Continue anyway? (y/n): ", stepName)
-	response, _ := reader.ReadString('\n')
-	response = strings.TrimSpace(strings.ToLower(response))
-
-	return response == "y" || response == "yes"
-}
