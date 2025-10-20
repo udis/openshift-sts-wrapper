@@ -78,8 +78,11 @@ func (e *MockExecutor) WasExecutedContaining(substring string) bool {
 
 // RunCommand is a helper that uses the executor
 func RunCommand(executor CommandExecutor, name string, args ...string) error {
-	_, err := executor.Execute(name, args...)
+	output, err := executor.Execute(name, args...)
 	if err != nil {
+		if output != "" {
+			return fmt.Errorf("command failed: %s %v: %w\nOutput: %s", name, args, err, strings.TrimSpace(output))
+		}
 		return fmt.Errorf("command failed: %s %v: %w", name, args, err)
 	}
 	return nil
