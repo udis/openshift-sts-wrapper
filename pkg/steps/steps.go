@@ -147,15 +147,20 @@ func (s *Step3ExtractCcoctl) Execute() error {
 	// Trim whitespace from CCO image reference
 	ccoImage = strings.TrimSpace(ccoImage)
 
-	// Extract ccoctl from CCO image
+	// Extract ccoctl from CCO image (extracts to current directory)
 	extractArgs := []string{
 		"image", "extract",
 		ccoImage,
-		"--file=/usr/bin/ccoctl:",
+		"--file=/usr/bin/ccoctl",
 		"--registry-config=" + s.cfg.PullSecretPath,
 	}
 	if err := util.RunCommand(s.executor, "oc", extractArgs...); err != nil {
 		return fmt.Errorf("failed to extract ccoctl: %w", err)
+	}
+
+	// Move ccoctl to the bin directory
+	if err := os.Rename("ccoctl", ccoctlPath); err != nil {
+		return fmt.Errorf("failed to move ccoctl to bin directory: %w", err)
 	}
 
 	// Make it executable
