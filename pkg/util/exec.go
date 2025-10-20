@@ -11,6 +11,7 @@ import (
 type CommandExecutor interface {
 	Execute(name string, args ...string) (string, error)
 	ExecuteInteractive(name string, args ...string) error
+	ExecuteInteractiveWithEnv(name string, env []string, args ...string) error
 }
 
 // RealExecutor executes actual system commands
@@ -27,6 +28,15 @@ func (e *RealExecutor) ExecuteInteractive(name string, args ...string) error {
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
+	return cmd.Run()
+}
+
+func (e *RealExecutor) ExecuteInteractiveWithEnv(name string, env []string, args ...string) error {
+	cmd := exec.Command(name, args...)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Env = append(os.Environ(), env...)
 	return cmd.Run()
 }
 
@@ -87,6 +97,17 @@ func (e *MockExecutor) WasExecutedContaining(substring string) bool {
 }
 
 func (e *MockExecutor) ExecuteInteractive(name string, args ...string) error {
+	cmdStr := name + " " + strings.Join(args, " ")
+	e.Commands = append(e.Commands, cmdStr)
+
+	if err, ok := e.Errors[cmdStr]; ok {
+		return err
+	}
+
+	return nil
+}
+
+func (e *MockExecutor) ExecuteInteractiveWithEnv(name string, env []string, args ...string) error {
 	cmdStr := name + " " + strings.Join(args, " ")
 	e.Commands = append(e.Commands, cmdStr)
 

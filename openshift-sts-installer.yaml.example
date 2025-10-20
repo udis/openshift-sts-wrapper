@@ -24,5 +24,5 @@ outputDir: _output
 
 # Optional: Start from a specific step number (default: 0, which means start from beginning)
 # Useful for resuming interrupted installations
-# Steps: 1-2=Extract, 3=Binaries, 4=Config, 5=CredMode, 6=Manifests, 7=AWS, 8-9=Copy, 10=Deploy
+# Steps: 1=CredReqs, 2=OpenShift-Install, 3=Ccoctl, 4=Config, 5=CredMode, 6=Manifests, 7=AWS, 8-9=Copy, 10=Deploy, 11=Verify
 startFromStep: 0

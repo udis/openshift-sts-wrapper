@@ -197,7 +197,7 @@ func (s *Step4CreateConfig) Execute() error {
 	installBin := util.GetBinaryPath(s.versionArch, "openshift-install")
 	args := []string{"create", "install-config", "--dir", versionDir}
 
-	return util.RunInteractiveCommand(s.executor, installBin, args...)
+	return s.executor.ExecuteInteractive(installBin, args...)
 }
 
 // Step5SetCredentialsMode appends credentialsMode: Manual to install-config.yaml
