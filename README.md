@@ -24,8 +24,34 @@ sudo make install
 ## Prerequisites
 
 - `oc` (OpenShift CLI) must be installed and in your PATH
-- AWS credentials configured
+- AWS credentials configured in `~/.aws/credentials`
 - Pull secret from Red Hat (will be prompted if not provided)
+
+### AWS Credentials
+
+The tool automatically reads AWS credentials from `~/.aws/credentials` based on the specified profile (defaults to `default`). The credentials are used for:
+- Creating install-config.yaml (via openshift-install)
+- Creating AWS resources (S3, IAM, OIDC via ccoctl)
+- Deploying the cluster
+
+You can specify a different profile using:
+- CLI flag: `--aws-profile=my-profile`
+- Config file: `awsProfile: my-profile`
+- Environment variable: `OPENSHIFT_STS_AWS_PROFILE=my-profile`
+
+If credentials cannot be read from the profile, the tool will proceed without setting AWS environment variables, relying on the default AWS credential chain.
+
+### Configuration Notes
+
+**Step 4 (Create install-config.yaml)**: Always runs interactively using `openshift-install create install-config`, which will prompt you for:
+- SSH public key
+- Platform (aws)
+- Base domain
+- Cluster name
+- AWS region
+- Pull secret
+
+**Step 7 (Create AWS resources)**: Automatically reads `clusterName` and `awsRegion` from the install-config.yaml created in Step 4. You don't need to specify these in your configuration file unless you want to override the values from install-config.yaml.
 
 ## Usage
 
@@ -36,7 +62,8 @@ openshift-sts-installer install \
   --release-image=quay.io/openshift-release-dev/ocp-release:4.12.0-x86_64 \
   --cluster-name=my-cluster \
   --region=us-east-2 \
-  --pull-secret=./pull-secret.json
+  --pull-secret=./pull-secret.json \
+  --aws-profile=default
 ```
 
 ### With Private S3 Bucket
@@ -47,6 +74,7 @@ openshift-sts-installer install \
   --cluster-name=my-cluster \
   --region=us-east-2 \
   --pull-secret=./pull-secret.json \
+  --aws-profile=default \
   --private-bucket
 ```
 
@@ -58,6 +86,7 @@ Create `openshift-sts-installer.yaml`:
 releaseImage: quay.io/openshift-release-dev/ocp-release:4.12.0-x86_64
 clusterName: my-cluster
 awsRegion: us-east-2
+awsProfile: default
 pullSecretPath: ./pull-secret.json
 privateBucket: false
 outputDir: _output
@@ -103,6 +132,7 @@ You can also configure via environment variables:
 export OPENSHIFT_STS_RELEASE_IMAGE=quay.io/openshift-release-dev/ocp-release:4.12.0-x86_64
 export OPENSHIFT_STS_CLUSTER_NAME=my-cluster
 export OPENSHIFT_STS_AWS_REGION=us-east-2
+export OPENSHIFT_STS_AWS_PROFILE=default
 export OPENSHIFT_STS_PULL_SECRET_PATH=./pull-secret.json
 export OPENSHIFT_STS_PRIVATE_BUCKET=true
 

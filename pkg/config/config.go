@@ -11,6 +11,7 @@ type Config struct {
 	ReleaseImage   string `yaml:"releaseImage"`
 	ClusterName    string `yaml:"clusterName"`
 	AwsRegion      string `yaml:"awsRegion"`
+	AwsProfile     string `yaml:"awsProfile"`
 	PullSecretPath string `yaml:"pullSecretPath"`
 	PrivateBucket  bool   `yaml:"privateBucket"`
 	OutputDir      string `yaml:"outputDir"`
@@ -38,6 +39,7 @@ func LoadFromEnv() *Config {
 		ReleaseImage:   os.Getenv("OPENSHIFT_STS_RELEASE_IMAGE"),
 		ClusterName:    os.Getenv("OPENSHIFT_STS_CLUSTER_NAME"),
 		AwsRegion:      os.Getenv("OPENSHIFT_STS_AWS_REGION"),
+		AwsProfile:     os.Getenv("OPENSHIFT_STS_AWS_PROFILE"),
 		PullSecretPath: os.Getenv("OPENSHIFT_STS_PULL_SECRET_PATH"),
 		PrivateBucket:  os.Getenv("OPENSHIFT_STS_PRIVATE_BUCKET") == "true",
 		OutputDir:      os.Getenv("OPENSHIFT_STS_OUTPUT_DIR"),
@@ -54,6 +56,9 @@ func (c *Config) Merge(other *Config) {
 	}
 	if other.AwsRegion != "" {
 		c.AwsRegion = other.AwsRegion
+	}
+	if other.AwsProfile != "" {
+		c.AwsProfile = other.AwsProfile
 	}
 	if other.PullSecretPath != "" {
 		c.PullSecretPath = other.PullSecretPath
@@ -74,12 +79,7 @@ func ValidateConfig(cfg *Config) error {
 	if cfg.ReleaseImage == "" {
 		return fmt.Errorf("release image is required")
 	}
-	if cfg.ClusterName == "" {
-		return fmt.Errorf("cluster name is required")
-	}
-	if cfg.AwsRegion == "" {
-		return fmt.Errorf("AWS region is required")
-	}
+	// ClusterName and AwsRegion are now optional - they can be read from install-config.yaml
 	return nil
 }
 
@@ -90,5 +90,8 @@ func (c *Config) SetDefaults() {
 	}
 	if c.PullSecretPath == "" {
 		c.PullSecretPath = "pull-secret.json"
+	}
+	if c.AwsProfile == "" {
+		c.AwsProfile = "default"
 	}
 }

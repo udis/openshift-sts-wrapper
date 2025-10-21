@@ -197,6 +197,11 @@ func (s *Step4CreateConfig) Execute() error {
 	installBin := util.GetBinaryPath(s.versionArch, "openshift-install")
 	args := []string{"create", "install-config", "--dir", versionDir}
 
+	s.log.Info("Starting interactive install-config creation...")
+	s.log.Info("Please answer the prompts from openshift-install:")
+
+	// Note: We don't pass AWS credentials here because it breaks interactive mode
+	// The user should have AWS credentials already configured via AWS CLI or environment
 	return s.executor.ExecuteInteractive(installBin, args...)
 }
 

@@ -5,11 +5,17 @@
 # Get available versions from: https://mirror.openshift.com/pub/openshift-v4/clients/ocp/
 releaseImage: quay.io/openshift-release-dev/ocp-release:4.12.0-x86_64
 
-# Required: Cluster name (also used as AWS infrastructure name prefix)
-clusterName: my-cluster
+# Optional: Cluster name and AWS region
+# If not specified here, they will be automatically read from the install-config.yaml
+# created in Step 4 (when you answer the interactive prompts)
+# You can specify them here to override what's in install-config.yaml if needed
+# clusterName: my-cluster
+# awsRegion: us-east-2
 
-# Required: AWS region for deployment
-awsRegion: us-east-2
+# Optional: AWS profile name from ~/.aws/credentials (default: default)
+# The tool automatically reads credentials from this profile and exports them
+# as environment variables for AWS operations
+# awsProfile: default
 
 # Optional: Path to pull secret file (default: ./pull-secret.json)
 # Download from: https://cloud.redhat.com/openshift/install/pull-secret
