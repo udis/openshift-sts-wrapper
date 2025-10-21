@@ -32,6 +32,12 @@ func (s *Step7CreateAWSResources) Execute() error {
 	ccoctlBin := util.GetBinaryPath(s.versionArch, "ccoctl")
 	credreqsPath := util.GetCredReqsPath(s.versionArch)
 
+	// Cluster name and region should be available from config
+	// (loaded after Step 4 from install-config.yaml if not specified)
+	if s.cfg.ClusterName == "" || s.cfg.AwsRegion == "" {
+		return fmt.Errorf("cluster name and AWS region are required. They should have been loaded from install-config.yaml after Step 4")
+	}
+
 	args := []string{
 		"aws", "create-all",
 		"--name", s.cfg.ClusterName,
@@ -44,7 +50,15 @@ func (s *Step7CreateAWSResources) Execute() error {
 		args = append(args, "--create-private-s3-bucket")
 	}
 
-	return util.RunCommand(s.executor, ccoctlBin, args...)
+	// Get AWS credentials from profile and set as environment variables
+	awsEnv, err := util.GetAWSEnvVars(s.cfg.AwsProfile)
+	if err != nil {
+		s.log.Debug(fmt.Sprintf("Could not read AWS credentials from profile '%s': %v", s.cfg.AwsProfile, err))
+		s.log.Debug("Proceeding without setting AWS credentials from profile")
+		return util.RunCommand(s.executor, ccoctlBin, args...)
+	}
+
+	return util.RunCommandWithEnv(s.executor, awsEnv, ccoctlBin, args...)
 }
 
 // Step8CopyManifests copies manifests from _output to manifests/
@@ -125,7 +139,15 @@ func (s *Step10DeployCluster) Execute() error {
 	installBin := util.GetBinaryPath(s.versionArch, "openshift-install")
 	args := []string{"create", "cluster", "--dir", versionDir, "--log-level=debug"}
 
-	return util.RunCommand(s.executor, installBin, args...)
+	// Get AWS credentials from profile and set as environment variables
+	awsEnv, err := util.GetAWSEnvVars(s.cfg.AwsProfile)
+	if err != nil {
+		s.log.Debug(fmt.Sprintf("Could not read AWS credentials from profile '%s': %v", s.cfg.AwsProfile, err))
+		s.log.Debug("Proceeding without setting AWS credentials from profile")
+		return util.RunCommand(s.executor, installBin, args...)
+	}
+
+	return util.RunCommandWithEnv(s.executor, awsEnv, installBin, args...)
 }
 
 // Step11Verify performs post-install verification

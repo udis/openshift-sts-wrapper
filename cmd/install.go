@@ -16,8 +16,7 @@ import (
 
 var (
 	releaseImage   string
-	clusterName    string
-	awsRegion      string
+	awsProfile     string
 	pullSecretPath string
 	privateBucket  bool
 	startFromStep  int
@@ -34,8 +33,7 @@ func init() {
 	rootCmd.AddCommand(installCmd)
 
 	installCmd.Flags().StringVar(&releaseImage, "release-image", "", "OpenShift release image URL")
-	installCmd.Flags().StringVar(&clusterName, "cluster-name", "", "Cluster/infrastructure name")
-	installCmd.Flags().StringVar(&awsRegion, "region", "", "AWS region")
+	installCmd.Flags().StringVar(&awsProfile, "aws-profile", "", "AWS profile name (default: default)")
 	installCmd.Flags().StringVar(&pullSecretPath, "pull-secret", "", "Path to pull secret file")
 	installCmd.Flags().BoolVar(&privateBucket, "private-bucket", false, "Use private S3 bucket with CloudFront")
 	installCmd.Flags().IntVar(&startFromStep, "start-from-step", 0, "Start from specific step number")
@@ -144,6 +142,30 @@ func runInstall(cmd *cobra.Command, args []string) {
 		} else {
 			log.CompleteStep(step.Name())
 			summary.AddSuccess(step.Name())
+
+			// After Step 4, read clusterName and awsRegion from install-config.yaml
+			// This must be done before Step 6 consumes the file
+			if stepDef.num == 4 && (cfg.ClusterName == "" || cfg.AwsRegion == "") {
+				versionArch, err := util.ExtractVersionArch(cfg.ReleaseImage)
+				if err == nil {
+					installConfigPath := util.GetInstallConfigPath(versionArch)
+					if util.FileExists(installConfigPath) {
+						name, region, err := util.ExtractClusterNameAndRegion(installConfigPath)
+						if err == nil {
+							if cfg.ClusterName == "" {
+								cfg.ClusterName = name
+								log.Debug(fmt.Sprintf("Read cluster name from install-config.yaml: %s", name))
+							}
+							if cfg.AwsRegion == "" {
+								cfg.AwsRegion = region
+								log.Debug(fmt.Sprintf("Read AWS region from install-config.yaml: %s", region))
+							}
+						} else {
+							log.Debug(fmt.Sprintf("Could not extract cluster name/region from install-config.yaml: %v", err))
+						}
+					}
+				}
+			}
 		}
 	}
 
@@ -179,8 +201,7 @@ func loadConfig(log *logger.Logger) *config.Config {
 	// 3. Merge flags
 	flagCfg := &config.Config{
 		ReleaseImage:   releaseImage,
-		ClusterName:    clusterName,
-		AwsRegion:      awsRegion,
+		AwsProfile:     awsProfile,
 		PullSecretPath: pullSecretPath,
 		PrivateBucket:  privateBucket,
 		StartFromStep:  startFromStep,
