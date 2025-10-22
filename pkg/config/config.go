@@ -8,14 +8,15 @@ import (
 )
 
 type Config struct {
-	ReleaseImage   string `yaml:"releaseImage"`
-	ClusterName    string `yaml:"clusterName"`
-	AwsRegion      string `yaml:"awsRegion"`
-	AwsProfile     string `yaml:"awsProfile"`
-	PullSecretPath string `yaml:"pullSecretPath"`
-	PrivateBucket  bool   `yaml:"privateBucket"`
-	OutputDir      string `yaml:"outputDir"`
-	StartFromStep  int    `yaml:"startFromStep"`
+	ReleaseImage    string `yaml:"releaseImage"`
+	ClusterName     string `yaml:"clusterName"`
+	AwsRegion       string `yaml:"awsRegion"`
+	AwsProfile      string `yaml:"awsProfile"`
+	PullSecretPath  string `yaml:"pullSecretPath"`
+	PrivateBucket   bool   `yaml:"privateBucket"`
+	OutputDir       string `yaml:"outputDir"`
+	StartFromStep   int    `yaml:"startFromStep"`
+	ConfirmEachStep bool   `yaml:"confirmEachStep"`
 }
 
 // LoadFromFile loads configuration from a YAML file
@@ -36,13 +37,14 @@ func LoadFromFile(path string) (*Config, error) {
 // LoadFromEnv loads configuration from environment variables
 func LoadFromEnv() *Config {
 	return &Config{
-		ReleaseImage:   os.Getenv("OPENSHIFT_STS_RELEASE_IMAGE"),
-		ClusterName:    os.Getenv("OPENSHIFT_STS_CLUSTER_NAME"),
-		AwsRegion:      os.Getenv("OPENSHIFT_STS_AWS_REGION"),
-		AwsProfile:     os.Getenv("OPENSHIFT_STS_AWS_PROFILE"),
-		PullSecretPath: os.Getenv("OPENSHIFT_STS_PULL_SECRET_PATH"),
-		PrivateBucket:  os.Getenv("OPENSHIFT_STS_PRIVATE_BUCKET") == "true",
-		OutputDir:      os.Getenv("OPENSHIFT_STS_OUTPUT_DIR"),
+		ReleaseImage:    os.Getenv("OPENSHIFT_STS_RELEASE_IMAGE"),
+		ClusterName:     os.Getenv("OPENSHIFT_STS_CLUSTER_NAME"),
+		AwsRegion:       os.Getenv("OPENSHIFT_STS_AWS_REGION"),
+		AwsProfile:      os.Getenv("OPENSHIFT_STS_AWS_PROFILE"),
+		PullSecretPath:  os.Getenv("OPENSHIFT_STS_PULL_SECRET_PATH"),
+		PrivateBucket:   os.Getenv("OPENSHIFT_STS_PRIVATE_BUCKET") == "true",
+		OutputDir:       os.Getenv("OPENSHIFT_STS_OUTPUT_DIR"),
+		ConfirmEachStep: os.Getenv("OPENSHIFT_STS_CONFIRM_EACH_STEP") == "true",
 	}
 }
 
@@ -71,6 +73,9 @@ func (c *Config) Merge(other *Config) {
 	}
 	if other.StartFromStep > 0 {
 		c.StartFromStep = other.StartFromStep
+	}
+	if other.ConfirmEachStep {
+		c.ConfirmEachStep = other.ConfirmEachStep
 	}
 }
 
