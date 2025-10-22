@@ -63,6 +63,14 @@ func runInstall(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
+	// Validate AWS credentials
+	log.Info(fmt.Sprintf("Validating AWS credentials for profile '%s'...", cfg.AwsProfile))
+	if err := util.ValidateAWSCredentials(cfg.AwsProfile); err != nil {
+		log.Error(fmt.Sprintf("AWS credential validation failed: %v", err))
+		os.Exit(1)
+	}
+	log.Info("✓ AWS credentials are valid")
+
 	// Set OutputDir to be under the version-specific artifacts directory
 	versionArch, err := util.ExtractVersionArch(cfg.ReleaseImage)
 	if err != nil {

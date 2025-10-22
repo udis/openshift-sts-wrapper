@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 )
@@ -102,4 +103,34 @@ func GetAWSEnvVars(profile string) ([]string, error) {
 	}
 
 	return envVars, nil
+}
+
+// ValidateAWSCredentials checks if AWS credentials are valid and not expired
+// by making a simple STS GetCallerIdentity API call
+func ValidateAWSCredentials(profile string) error {
+	// Try to get credentials for the profile
+	envVars, err := GetAWSEnvVars(profile)
+	if err != nil {
+		return fmt.Errorf("failed to read credentials for profile '%s': %w", profile, err)
+	}
+
+	// Run aws sts get-caller-identity to validate credentials
+	cmd := exec.Command("aws", "sts", "get-caller-identity", "--profile", profile)
+
+	// Set environment with credentials
+	cmd.Env = append(os.Environ(), envVars...)
+
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		outputStr := strings.TrimSpace(string(output))
+		if strings.Contains(outputStr, "ExpiredToken") || strings.Contains(outputStr, "expired") {
+			return fmt.Errorf("AWS credentials for profile '%s' have expired. Please refresh your credentials", profile)
+		}
+		if strings.Contains(outputStr, "InvalidClientTokenId") {
+			return fmt.Errorf("AWS credentials for profile '%s' are invalid", profile)
+		}
+		return fmt.Errorf("failed to validate AWS credentials for profile '%s': %s", profile, outputStr)
+	}
+
+	return nil
 }

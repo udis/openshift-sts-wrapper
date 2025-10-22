@@ -118,11 +118,28 @@ Step numbers:
 
 ### Cleanup After Failed Installation
 
+The cleanup command removes all AWS resources created during installation:
+- OpenShift infrastructure (EC2, VPCs, load balancers, DNS records) via `openshift-install destroy`
+- IAM roles and S3 bucket created by ccoctl
+
 ```bash
+# Complete cleanup (recommended - includes DNS records and infrastructure)
+openshift-sts-installer cleanup \
+  --cluster-name=my-cluster \
+  --region=us-east-2 \
+  --release-image=quay.io/openshift-release-dev/ocp-release:4.12.0-x86_64
+
+# Minimal cleanup (only IAM roles and S3 bucket, no infrastructure/DNS cleanup)
 openshift-sts-installer cleanup \
   --cluster-name=my-cluster \
   --region=us-east-2
 ```
+
+**Note:** If you provide `--release-image`, the cleanup will:
+1. Run `openshift-install destroy cluster` (if state file exists) to remove all infrastructure and DNS records
+2. Run `ccoctl aws delete` to remove IAM roles and S3 bucket
+
+Without `--release-image`, only step 2 runs, leaving infrastructure and DNS records orphaned.
 
 ## Environment Variables
 
