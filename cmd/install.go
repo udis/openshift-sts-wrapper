@@ -21,6 +21,7 @@ var (
 	privateBucket   bool
 	startFromStep   int
 	confirmEachStep bool
+	instanceType    string
 )
 
 var installCmd = &cobra.Command{
@@ -39,6 +40,7 @@ func init() {
 	installCmd.Flags().BoolVar(&privateBucket, "private-bucket", false, "Use private S3 bucket with CloudFront")
 	installCmd.Flags().IntVar(&startFromStep, "start-from-step", 0, "Start from specific step number")
 	installCmd.Flags().BoolVar(&confirmEachStep, "confirm-each-step", false, "Prompt for confirmation before executing each step")
+	installCmd.Flags().StringVar(&instanceType, "instance-type", "m5.4xlarge", "AWS instance type for controlPlane and compute pools")
 }
 
 func runInstall(cmd *cobra.Command, args []string) {
@@ -216,6 +218,7 @@ func loadConfig(log *logger.Logger) *config.Config {
 		PrivateBucket:   privateBucket,
 		StartFromStep:   startFromStep,
 		ConfirmEachStep: confirmEachStep,
+		InstanceType:    instanceType,
 	}
 	cfg.Merge(flagCfg)
 

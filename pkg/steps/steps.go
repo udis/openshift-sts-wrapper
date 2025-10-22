@@ -9,6 +9,7 @@ import (
 	"gitlab.cee.redhat.com/clobrano/ccoctl-sso/pkg/config"
 	"gitlab.cee.redhat.com/clobrano/ccoctl-sso/pkg/logger"
 	"gitlab.cee.redhat.com/clobrano/ccoctl-sso/pkg/util"
+	"gopkg.in/yaml.v3"
 )
 
 // Step represents a single installation step
@@ -231,13 +232,65 @@ func (s *Step5SetCredentialsMode) Execute() error {
 		return fmt.Errorf("failed to read install-config.yaml: %w", err)
 	}
 
-	// Append credentialsMode if not present
-	configStr := string(content)
-	if !util.FileContains(configPath, "credentialsMode:") {
-		configStr += "\ncredentialsMode: Manual\n"
-		if err := os.WriteFile(configPath, []byte(configStr), 0644); err != nil {
-			return fmt.Errorf("failed to write install-config.yaml: %w", err)
+	var doc map[string]interface{}
+	if err := yaml.Unmarshal(content, &doc); err != nil {
+		return fmt.Errorf("failed to parse install-config.yaml: %w", err)
+	}
+
+	// Ensure credentialsMode: Manual exists at top-level
+	if _, exists := doc["credentialsMode"]; !exists {
+		doc["credentialsMode"] = "Manual"
+	}
+
+	// Helper to ensure platform.aws.type is set in a machine pool-like object
+	desiredType := s.cfg.InstanceType
+	if strings.TrimSpace(desiredType) == "" {
+		desiredType = "m5.4xlarge"
+	}
+
+	ensurePoolType := func(pool map[string]interface{}) {
+		platform, ok := pool["platform"].(map[string]interface{})
+		if !ok {
+			platform = map[string]interface{}{}
+			pool["platform"] = platform
 		}
+		aws, ok := platform["aws"].(map[string]interface{})
+		if !ok {
+			aws = map[string]interface{}{}
+			platform["aws"] = aws
+		}
+		if _, ok := aws["type"]; !ok || aws["type"] == "" {
+			aws["type"] = desiredType
+		}
+	}
+
+	// controlPlane
+	if cpRaw, ok := doc["controlPlane"]; ok {
+		if cp, ok := cpRaw.(map[string]interface{}); ok {
+			ensurePoolType(cp)
+		}
+	}
+
+	// compute (list of pools)
+	if compsRaw, ok := doc["compute"]; ok {
+		if comps, ok := compsRaw.([]interface{}); ok {
+			for i := range comps {
+				if pool, ok := comps[i].(map[string]interface{}); ok {
+					ensurePoolType(pool)
+				}
+			}
+			// assign back in case underlying slice was modified
+			doc["compute"] = comps
+		}
+	}
+
+	// Marshal back to YAML
+	out, err := yaml.Marshal(doc)
+	if err != nil {
+		return fmt.Errorf("failed to serialize install-config.yaml: %w", err)
+	}
+	if err := os.WriteFile(configPath, out, 0644); err != nil {
+		return fmt.Errorf("failed to write install-config.yaml: %w", err)
 	}
 
 	return nil

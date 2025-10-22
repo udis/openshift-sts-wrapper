@@ -17,6 +17,7 @@ type Config struct {
 	OutputDir       string `yaml:"outputDir"`
 	StartFromStep   int    `yaml:"startFromStep"`
 	ConfirmEachStep bool   `yaml:"confirmEachStep"`
+	InstanceType    string `yaml:"instanceType"`
 }
 
 // LoadFromFile loads configuration from a YAML file
@@ -45,6 +46,7 @@ func LoadFromEnv() *Config {
 		PrivateBucket:   os.Getenv("OPENSHIFT_STS_PRIVATE_BUCKET") == "true",
 		OutputDir:       os.Getenv("OPENSHIFT_STS_OUTPUT_DIR"),
 		ConfirmEachStep: os.Getenv("OPENSHIFT_STS_CONFIRM_EACH_STEP") == "true",
+		InstanceType:    os.Getenv("OPENSHIFT_STS_INSTANCE_TYPE"),
 	}
 }
 
@@ -77,6 +79,9 @@ func (c *Config) Merge(other *Config) {
 	if other.ConfirmEachStep {
 		c.ConfirmEachStep = other.ConfirmEachStep
 	}
+	if other.InstanceType != "" {
+		c.InstanceType = other.InstanceType
+	}
 }
 
 // ValidateConfig validates that required fields are set
@@ -98,5 +103,8 @@ func (c *Config) SetDefaults() {
 	}
 	if c.AwsProfile == "" {
 		c.AwsProfile = "default"
+	}
+	if c.InstanceType == "" {
+		c.InstanceType = "m5.4xlarge"
 	}
 }
