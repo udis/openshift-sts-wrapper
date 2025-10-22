@@ -6,20 +6,22 @@ import (
 	"os"
 	"strings"
 
+	"github.com/spf13/cobra"
 	"gitlab.cee.redhat.com/clobrano/ccoctl-sso/pkg/config"
 	"gitlab.cee.redhat.com/clobrano/ccoctl-sso/pkg/errors"
 	"gitlab.cee.redhat.com/clobrano/ccoctl-sso/pkg/logger"
 	"gitlab.cee.redhat.com/clobrano/ccoctl-sso/pkg/steps"
 	"gitlab.cee.redhat.com/clobrano/ccoctl-sso/pkg/util"
-	"github.com/spf13/cobra"
 )
 
 var (
-	releaseImage   string
-	awsProfile     string
-	pullSecretPath string
-	privateBucket  bool
-	startFromStep  int
+	releaseImage    string
+	awsProfile      string
+	pullSecretPath  string
+	privateBucket   bool
+	startFromStep   int
+	confirmEachStep bool
+	instanceType    string
 )
 
 var installCmd = &cobra.Command{
@@ -37,6 +39,8 @@ func init() {
 	installCmd.Flags().StringVar(&pullSecretPath, "pull-secret", "", "Path to pull secret file")
 	installCmd.Flags().BoolVar(&privateBucket, "private-bucket", false, "Use private S3 bucket with CloudFront")
 	installCmd.Flags().IntVar(&startFromStep, "start-from-step", 0, "Start from specific step number")
+	installCmd.Flags().BoolVar(&confirmEachStep, "confirm-each-step", false, "Prompt for confirmation before executing each step")
+	installCmd.Flags().StringVar(&instanceType, "instance-type", "m5.4xlarge", "AWS instance type for controlPlane and compute pools")
 }
 
 func runInstall(cmd *cobra.Command, args []string) {
@@ -133,6 +137,14 @@ func runInstall(cmd *cobra.Command, args []string) {
 			continue
 		}
 
+		// Optionally confirm before executing the step
+		if cfg.ConfirmEachStep {
+			if !confirm(fmt.Sprintf("Proceed with %s? [y/N] ", step.Name())) {
+				log.Info(fmt.Sprintf("⏭  Skipping %s (user choice)", step.Name()))
+				continue
+			}
+		}
+
 		log.StartStep(step.Name())
 
 		if err := step.Execute(); err != nil {
@@ -200,11 +212,13 @@ func loadConfig(log *logger.Logger) *config.Config {
 
 	// 3. Merge flags
 	flagCfg := &config.Config{
-		ReleaseImage:   releaseImage,
-		AwsProfile:     awsProfile,
-		PullSecretPath: pullSecretPath,
-		PrivateBucket:  privateBucket,
-		StartFromStep:  startFromStep,
+		ReleaseImage:    releaseImage,
+		AwsProfile:      awsProfile,
+		PullSecretPath:  pullSecretPath,
+		PrivateBucket:   privateBucket,
+		StartFromStep:   startFromStep,
+		ConfirmEachStep: confirmEachStep,
+		InstanceType:    instanceType,
 	}
 	cfg.Merge(flagCfg)
 
@@ -237,3 +251,11 @@ func handleMissingPullSecret(log *logger.Logger, cfg *config.Config) {
 	cfg.PullSecretPath = path
 }
 
+// confirm prompts the user with a yes/no question and returns true only for 'y' or 'Y'.
+func confirm(prompt string) bool {
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Print(prompt)
+	answer, _ := reader.ReadString('\n')
+	answer = strings.TrimSpace(answer)
+	return strings.ToLower(answer) == "y"
+}
