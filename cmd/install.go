@@ -153,27 +153,27 @@ func runInstall(cmd *cobra.Command, args []string) {
 		}
 
 		if detector.ShouldSkipStep(stepDef.num) {
-			log.Info(fmt.Sprintf("⏭  Skipping %s (already completed)", step.Name()))
+			log.Info(fmt.Sprintf("⏭  Skipping [Step %d] %s (already completed)", stepDef.num, step.Name()))
 			continue
 		}
 
 		// Optionally confirm before executing the step
 		if cfg.ConfirmEachStep {
-			if !confirm(fmt.Sprintf("Proceed with %s? [y/N] ", step.Name())) {
-				log.Info(fmt.Sprintf("⏭  Skipping %s (user choice)", step.Name()))
+			if !confirm(fmt.Sprintf("Proceed with [Step %d] %s? [y/N] ", stepDef.num, step.Name())) {
+				log.Info(fmt.Sprintf("⏭  Skipping [Step %d] %s (user choice)", stepDef.num, step.Name()))
 				continue
 			}
 		}
 
-		log.StartStep(step.Name())
+		log.StartStep(fmt.Sprintf("[Step %d] %s", stepDef.num, step.Name()))
 
 		if err := step.Execute(); err != nil {
-			log.FailStep(step.Name())
-			summary.AddError(step.Name(), err)
+			log.FailStep(fmt.Sprintf("[Step %d] %s", stepDef.num, step.Name()))
+			summary.AddError(fmt.Sprintf("[Step %d] %s", stepDef.num, step.Name()), err)
 			break
 		} else {
-			log.CompleteStep(step.Name())
-			summary.AddSuccess(step.Name())
+			log.CompleteStep(fmt.Sprintf("[Step %d] %s", stepDef.num, step.Name()))
+			summary.AddSuccess(fmt.Sprintf("[Step %d] %s", stepDef.num, step.Name()))
 
 			// After Step 4, read clusterName and awsRegion from install-config.yaml
 			// This must be done before Step 6 consumes the file
