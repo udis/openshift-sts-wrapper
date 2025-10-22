@@ -144,10 +144,12 @@ func (s *Step10DeployCluster) Execute() error {
 	if err != nil {
 		s.log.Debug(fmt.Sprintf("Could not read AWS credentials from profile '%s': %v", s.cfg.AwsProfile, err))
 		s.log.Debug("Proceeding without setting AWS credentials from profile")
-		return util.RunCommand(s.executor, installBin, args...)
+		// Use interactive execution to stream output in real-time
+		return s.executor.ExecuteInteractive(installBin, args...)
 	}
 
-	return util.RunCommandWithEnv(s.executor, awsEnv, installBin, args...)
+	// Use interactive execution with env vars to stream output in real-time
+	return s.executor.ExecuteInteractiveWithEnv(installBin, awsEnv, args...)
 }
 
 // Step11Verify performs post-install verification

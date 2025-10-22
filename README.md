@@ -161,7 +161,8 @@ The tool creates the following directory structure:
 │       ├── _output/          # ccoctl generated files
 │       │   ├── manifests/
 │       │   └── tls/
-│       └── install-config.yaml
+│       ├── install-config.yaml.backup  # Backup of install-config (before Step 6 consumes it)
+│       └── install-config.yaml         # Created by Step 4, consumed by Step 6
 ├── manifests/                # Installation manifests (copied from _output)
 ├── tls/                      # TLS certificates (copied from _output)
 └── pull-secret.json          # Pull secret

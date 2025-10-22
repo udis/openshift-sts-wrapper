@@ -190,6 +190,22 @@ func runInstall(cmd *cobra.Command, args []string) {
 					}
 				}
 			}
+
+			// After Step 5, backup install-config.yaml before Step 6 consumes it
+			if stepDef.num == 5 {
+				versionArch, err := util.ExtractVersionArch(cfg.ReleaseImage)
+				if err == nil {
+					installConfigPath := util.GetInstallConfigPath(versionArch)
+					if util.FileExists(installConfigPath) {
+						backupPath := installConfigPath + ".backup"
+						if err := util.CopyFile(installConfigPath, backupPath); err != nil {
+							log.Debug(fmt.Sprintf("Could not backup install-config.yaml: %v", err))
+						} else {
+							log.Debug(fmt.Sprintf("Backed up install-config.yaml to %s", backupPath))
+						}
+					}
+				}
+			}
 		}
 	}
 
