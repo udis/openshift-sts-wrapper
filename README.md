@@ -89,7 +89,7 @@ awsRegion: us-east-2
 awsProfile: default
 pullSecretPath: ./pull-secret.json
 privateBucket: false
-outputDir: _output
+# outputDir defaults to artifacts/<version>/_output
 ```
 
 Then run:
@@ -158,12 +158,12 @@ The tool creates the following directory structure:
 │   └── 4.12.0-x86_64/       # Version-specific artifacts
 │       ├── bin/              # Extracted binaries
 │       ├── credreqs/         # Credentials requests
+│       ├── _output/          # ccoctl generated files
+│       │   ├── manifests/
+│       │   └── tls/
 │       └── install-config.yaml
-├── _output/                  # ccoctl generated files
-│   ├── manifests/
-│   └── tls/
-├── manifests/                # Installation manifests
-├── tls/                      # TLS certificates
+├── manifests/                # Installation manifests (copied from _output)
+├── tls/                      # TLS certificates (copied from _output)
 └── pull-secret.json          # Pull secret
 ```
 

@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -60,6 +61,17 @@ func runInstall(cmd *cobra.Command, args []string) {
 	if err := config.ValidateConfig(cfg); err != nil {
 		log.Error(fmt.Sprintf("Configuration error: %v", err))
 		os.Exit(1)
+	}
+
+	// Set OutputDir to be under the version-specific artifacts directory
+	versionArch, err := util.ExtractVersionArch(cfg.ReleaseImage)
+	if err != nil {
+		log.Error(fmt.Sprintf("Failed to extract version from release image: %v", err))
+		os.Exit(1)
+	}
+	if cfg.OutputDir == "_output" {
+		cfg.OutputDir = filepath.Join("artifacts", versionArch, "_output")
+		log.Debug(fmt.Sprintf("Using output directory: %s", cfg.OutputDir))
 	}
 
 	// Verify pull secret
